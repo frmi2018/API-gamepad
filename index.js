@@ -1,10 +1,26 @@
+// Package dotenv
 require("dotenv").config();
-
+// Package express
 const express = require("express");
 const app = express();
+// Package express-formidable
+const formidable = require("express-formidable");
+app.use(formidable());
+// Package Axios
 const axios = require("axios");
+// Package cors
 const cors = require("cors");
 app.use(cors());
+// Package Mongoose
+const mongoose = require("mongoose");
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Routes
+const userRoutes = require("./routes/user");
+app.use(userRoutes);
 
 app.get("/games", async (req, res) => {
   const id = req.query.id;
@@ -56,8 +72,14 @@ app.get("/games", async (req, res) => {
   }
 });
 
+// -----
+
 app.get("/", (req, res) => {
-  res.json({ message: "Hello" });
+  res.json({ message: "Welcome to the Gamepad project" });
+});
+
+app.all("*", (req, res) => {
+  res.status(404).send("Page not Found");
 });
 
 const port = process.env.PORT || 4000;
