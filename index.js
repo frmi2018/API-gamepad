@@ -29,6 +29,7 @@ app.get("/games", async (req, res) => {
   const ordering = req.query.ordering;
   const page_size = req.query.pagesize;
   const search = req.query.search;
+  console.log(id);
 
   try {
     if (id) {

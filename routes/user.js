@@ -5,19 +5,18 @@ const SHA256 = require("crypto-js/sha256");
 const encBase64 = require("crypto-js/enc-base64");
 const uid2 = require("uid2");
 
-// Import du package cloudinary
+// Import du package cloudinary pour avatar
 const cloudinary = require("cloudinary").v2;
 
 const User = require("../models/User");
+const Game = require("../models/Game");
 
 router.get("/user", (req, res) => {
   res.json({ message: "Welcome to the user route" });
 });
 
 router.post("/user/signup", async (req, res) => {
-  console.log(req.fields.email, req.fields.username);
   try {
-    // Je vérifie que l'email ne soit pas utilisé !
     const userEmail = await User.findOne({ email: req.fields.email });
     if (userEmail) {
       res.status(400).json({ error: "This email is already used" });
@@ -91,11 +90,57 @@ router.post("/user/login", async (req, res) => {
         res.status(401).json({ error: "Unauthorized" });
       }
     } else {
-      res.status(400).json({ message: "User not found" });
+      res.status(400).json({ error: "User not found" });
     }
   } catch (error) {
     console.log(error.message);
     res.json({ message: error.message });
+  }
+});
+
+router.post("/user/postreview", async (req, res) => {
+  console.log(
+    req.fields.gameId,
+    req.fields.title,
+    req.fields.text,
+    req.fields.author,
+    Date.now()
+  );
+
+  try {
+    const game = await Game.findOne({ gameId: req.fields.gameId });
+
+    if (game) {
+      // res.status(400).json({ error: "existe" });
+      game.review.push({
+        title: req.fields.title,
+        text: req.fields.text,
+        author: req.fields.author,
+        date: Date.now(),
+      });
+      await game.save();
+      res.json({
+        game,
+      });
+    } else {
+      const game = new Game({
+        gameId: req.fields.gameId,
+        review: [
+          {
+            title: req.fields.title,
+            text: req.fields.text,
+            author: req.fields.author,
+            date: Date.now(),
+          },
+        ],
+      });
+      await game.save();
+      res.json({
+        game,
+      });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
