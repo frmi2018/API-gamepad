@@ -144,4 +144,32 @@ router.post("/user/postreview", async (req, res) => {
   }
 });
 
+router.get("/user/getreview", async (req, res) => {
+  try {
+    console.log(req.fields.gameId);
+    const game = await Game.findOne({ gameId: req.fields.gameId });
+    console.log(game);
+
+    if (game) {
+      let review = [];
+      for (let i = 0; i < game.review.length; i++) {
+        review.push({
+          title: game.review[i].title,
+          text: game.review[i].text,
+          author: game.review[i].author,
+          date: game.review[i].date,
+        });
+      }
+      console.log(review);
+      res.json({
+        review,
+      });
+    } else {
+      res.status(401).json({ error: "No review for this game" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 module.exports = router;
