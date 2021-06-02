@@ -11,7 +11,7 @@ const Game = mongoose.model("Game", {
       title: String,
       text: String,
       author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      date: Date.now,
+      date: Date,
     },
   ],
 });
