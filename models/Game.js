@@ -10,8 +10,8 @@ const Game = mongoose.model("Game", {
     {
       title: String,
       text: String,
-      author: { type: "ObjectId", ref: "User" },
-      date: Date,
+      author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      date: Date.now,
     },
   ],
 });

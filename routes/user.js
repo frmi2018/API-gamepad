@@ -93,20 +93,11 @@ router.post("/user/login", async (req, res) => {
       res.status(400).json({ error: "User not found" });
     }
   } catch (error) {
-    console.log(error.message);
     res.json({ message: error.message });
   }
 });
 
 router.post("/user/postreview", async (req, res) => {
-  // console.log(
-  //   req.fields.gameId,
-  //   req.fields.title,
-  //   req.fields.text,
-  //   req.fields.author,
-  //   Date.now()
-  // );
-
   try {
     const game = await Game.findOne({ gameId: req.fields.gameId });
 
@@ -146,10 +137,7 @@ router.post("/user/postreview", async (req, res) => {
 
 router.get("/user/getreview", async (req, res) => {
   try {
-    console.log(req.fields.gameId);
-    const game = await Game.findOne({ gameId: req.fields.gameId });
-    console.log(game);
-
+    const game = await Game.findOne({ gameId: req.query.id });
     if (game) {
       let review = [];
       for (let i = 0; i < game.review.length; i++) {
@@ -160,7 +148,6 @@ router.get("/user/getreview", async (req, res) => {
           date: game.review[i].date,
         });
       }
-      console.log(review);
       res.json({
         review,
       });
