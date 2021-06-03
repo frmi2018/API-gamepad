@@ -11,10 +11,7 @@ const cloudinary = require("cloudinary").v2;
 const User = require("../models/User");
 const Game = require("../models/Game");
 
-router.get("/user", (req, res) => {
-  res.json({ message: "Welcome to the user route" });
-});
-
+// Routes gestion users
 router.post("/user/signup", async (req, res) => {
   try {
     const userEmail = await User.findOne({ email: req.fields.email });
@@ -96,7 +93,7 @@ router.post("/user/login", async (req, res) => {
     res.json({ message: error.message });
   }
 });
-
+// Routes gestion reviews
 router.post("/user/postreview", async (req, res) => {
   try {
     const game = await Game.findOne({ gameId: req.fields.gameId });
@@ -107,7 +104,8 @@ router.post("/user/postreview", async (req, res) => {
         title: req.fields.title,
         text: req.fields.text,
         author: req.fields.author,
-        date: Date.now(),
+        username: req.fields.username,
+        date: Date,
       });
       await game.save();
       res.json({
@@ -138,25 +136,98 @@ router.post("/user/postreview", async (req, res) => {
 router.get("/user/getreview", async (req, res) => {
   try {
     const game = await Game.findOne({ gameId: req.query.id });
-    if (game) {
+    if (game !== null) {
       let review = [];
       for (let i = 0; i < game.review.length; i++) {
         review.push({
           title: game.review[i].title,
           text: game.review[i].text,
           author: game.review[i].author,
+          username: game.review[i].username,
           date: game.review[i].date,
         });
       }
-      res.json({
+      res.status(200).json({
         review,
       });
     } else {
-      res.status(401).json({ error: "No review for this game" });
+      let review = [];
+      res.status(200).json({
+        review,
+      });
     }
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
+});
+// Routes gestion favoris
+router.post("/user/postfavoris", async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.fields.userId });
+    if (user) {
+      // test si jeu déjà en favoris
+      let exist = false;
+      for (let i = 0; i < user.favoris.length; i++) {
+        if (user.favoris[i].gameId == req.fields.gameId) {
+          // supprimer des favoris
+          user.favoris.splice(i, 1);
+          exist = true;
+        }
+      }
+      // si pas présent alors ajouter aux favoris
+      if (exist === false) {
+        user.favoris.push({
+          gameId: req.fields.gameId,
+          gameName: req.fields.gameName,
+          gamePictureURL: req.fields.gamePictureURL,
+        });
+      }
+      await user.save();
+      if (exist === true) {
+        res.status(200).json({ message: "game removed" });
+      } else {
+        res.status(200).json({ message: "game added" });
+      }
+    } else {
+      res.status(401).json({ error: "user not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+// renvoi la liste des favoris et test si un jeu est dans les favoris
+router.get("/user/getfavoris", async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.query.userId });
+    if (user) {
+      // créer la liste des favoris
+      let listfav = [];
+      let exist = false;
+      for (let i = 0; i < user.favoris.length; i++) {
+        // test si jeu de la requête est présent dans les favoris
+        if (req.query.gameId === user.favoris[i].gameId) {
+          exist = true;
+        }
+        listfav.push({
+          gameId: user.favoris[i].gameId,
+          gameName: user.favoris[i].gameName,
+          gamePictureURL: user.favoris[i].gamePictureURL,
+        });
+      }
+      res.status(200).json({
+        listfav,
+        exist,
+      });
+    } else {
+      res.status(401).json({ error: "user not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+// test
+router.get("/user", (req, res) => {
+  res.json({ message: "Welcome to the user route" });
 });
 
 module.exports = router;
